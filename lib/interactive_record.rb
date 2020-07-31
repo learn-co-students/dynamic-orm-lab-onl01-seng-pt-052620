@@ -25,7 +25,6 @@ class InteractiveRecord
         table_info.each do |column|
             column_names << column["name"]
         end 
-
         column_names.compact
     end 
 
@@ -33,22 +32,22 @@ class InteractiveRecord
         self.class.table_name
     end 
 
-    def col_name_for_insert
-        self.class.column_names.delete_if {|col_name| col_name == "id"}.join(",")
+    def col_names_for_insert
+        self.class.column_names.delete_if {|col_name| col_name == "id"}.join(", ")
     end 
 
     def values_for_insert
         values = []
-        self.column_names.each do |col_name|
+        self.class.column_names.each do |col_name|
             values << "'#{send(col_name)}'" unless send(col_name).nil?
         end 
-        values.join(",")
+        values.join(", ")
     end
 
     def save
-        DB[:conn].execute("INSERT INTO #{table_name_for_insert} #{col_name_for_insert} VALUES (?)", [values_for_insert])
+        DB[:conn].execute("INSERT INTO #{table_name_for_insert} (#{col_names_for_insert}) VALUES (?)", [values_for_insert])
 
         @id = DB[:conn].execute("SELECT last_insert_rowid() FROM #{table_name_for_insert}")[0][0]
     end 
-  
+
 end
